@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import json
-from datetime import datetime
+from datetime import datetime, time as dt_time
 import os
 import yfinance as yf
 from functools import lru_cache
 import time
+import pytz
 
 # 페이지 설정
 st.set_page_config(
@@ -31,8 +32,48 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# ==================== 자동 업데이트 시간 설정 ====================
+KST = pytz.timezone('Asia/Seoul')
+US_EDT = pytz.timezone('US/Eastern')
+
+def get_next_update_time():
+    """다음 업데이트 시간 계산"""
+    now = datetime.now(KST)
+    
+    # 한국장 마감: 15:30
+    korea_close = now.replace(hour=15, minute=30, second=0, microsecond=0)
+    # 미국장 마감: 다음날 05:00 KST
+    us_close = now.replace(hour=5, minute=0, second=0, microsecond=0) + pd.Timedelta(days=1)
+    
+    # 다음 업데이트가 가장 가까운 시간
+    if now < korea_close:
+        next_update = korea_close
+        market = "🇰🇷 한국장"
+    elif now < us_close:
+        next_update = us_close
+        market = "🇺🇸 미국장"
+    else:
+        next_update = korea_close + pd.Timedelta(days=1)
+        market = "🇰🇷 한국장"
+    
+    return next_update, market
+
+def should_refresh_cache():
+    """캐시 갱신 여부 확인"""
+    now = datetime.now(KST)
+    hour = now.hour
+    minute = now.minute
+    
+    # 한국장 마감 후 (15:30~)
+    if hour >= 15 and minute >= 30:
+        return True, "🇰🇷 한국장"
+    # 미국장 마감 후 (05:00~)
+    elif hour >= 5 and hour < 15:
+        return True, "🇺🇸 미국장"
+    else:
+        return False, None
+
 # ==================== 실시간 주가 함수 ====================
-@st.cache_data(ttl=600)
 def get_stock_price(ticker):
     """yfinance에서 실시간 주가 & 변화율 조회"""
     try:
@@ -58,6 +99,17 @@ def get_stock_price(ticker):
 # 타이틀
 st.markdown('<div class="header">🐾 클로의 포트폴리오 추적 시스템</div>', unsafe_allow_html=True)
 st.markdown("**에니그마의 투자 포트폴리오 대시보드** | 실시간 추적")
+
+# ==================== 자동 업데이트 정보 ====================
+col_update1, col_update2 = st.columns(2)
+
+with col_update1:
+    now_kst = datetime.now(KST)
+    st.info(f"⏰ **마지막 업데이트**: {now_kst.strftime('%Y-%m-%d %H:%M:%S')} KST")
+
+with col_update2:
+    next_update, market = get_next_update_time()
+    st.info(f"🔄 **다음 업데이트**: {next_update.strftime('%Y-%m-%d %H:%M')} {market}")
 
 # ==================== 데이터 구조 ====================
 PORTFOLIO_DATA = {
