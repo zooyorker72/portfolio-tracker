@@ -4,6 +4,7 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime
 import pytz
+import pathlib
 
 st.set_page_config(
     page_title="💰 실시간 포트폴리오",
@@ -15,10 +16,8 @@ st.markdown("# 💰 실시간 포트폴리오 현황")
 
 # JSON 데이터 로드
 import os
-import pathlib
 
 try:
-    # 상대 경로로 변경
     data_path = pathlib.Path(__file__).parent.parent / "portfolio_data.json"
     with open(data_path, "r", encoding="utf-8") as f:
         portfolio_data = json.load(f)
@@ -29,10 +28,9 @@ except Exception as e:
     st.error(f"데이터 로드 오류: {e}")
     st.stop()
 
-# 환율 정보
 exchange_rates = portfolio_data["metadata"]["exchange_rates"]
 
-# 실시간 주가 조회 (캐싱 없음 - 실시간 필요)
+@st.cache_data(ttl=600)
 def get_current_price(ticker):
     try:
         data = yf.Ticker(ticker)
@@ -40,43 +38,43 @@ def get_current_price(ticker):
         if price:
             return price
         else:
-            # 대체: history에서 최근가 가져오기
             hist = data.history(period='1d')
             if not hist.empty:
                 return hist['Close'].iloc[-1]
         return None
     except Exception as e:
-        st.warning(f"{ticker} 조회 실패: {str(e)}")
         return None
 
-# 모든 계좌의 보유종목 수집
 all_holdings = {}
-total_cash = 0  # 전체 현금
+total_cash = 0
 
 for account_key, account in portfolio_data["accounts"].items():
     all_holdings.update(account["holdings"])
-    # 현금 합산
     cash = account.get("cash", {})
     if isinstance(cash, dict):
         total_cash += cash.get("KRW", 0)
         total_cash += cash.get("CAD", 0) * exchange_rates["CAD_KRW"]
         total_cash += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
 
-# 실시간 계산
-total_investment = total_cash  # 현금도 투자원금에 포함
-total_current_value = total_cash  # 현재가치도 현금부터 시작
-total_profit = 0  # 평가손익
+total_investment = total_cash
+total_current_value = total_cash
+total_profit = 0
 
 holdings_results = []
 
+# 현금 항목 추가
+st.subheader("💵 현금 현황")
+col_cash1, col_cash2, col_cash3 = st.columns(3)
+with col_cash1:
+    st.metric("전체 현금", f"₩{total_cash:,.0f}")
+
+# 종목별 손익 계산
 for ticker, info in all_holdings.items():
-    # 수동 입력된 가격이 있으면 우선 사용
     if "current_price" in info and info["current_price"]:
         current_price = info["current_price"]
     else:
         current_price = get_current_price(ticker)
     
-    # 환율 적용
     if info["currency"] == "USD":
         exchange = exchange_rates["USD_KRW"]
     elif info["currency"] == "CAD":
@@ -86,7 +84,6 @@ for ticker, info in all_holdings.items():
     else:
         exchange = 1
     
-    # 계산
     investment = info["avg_price"] * info["quantity"] * exchange
     total_investment += investment
     
@@ -120,10 +117,9 @@ for ticker, info in all_holdings.items():
             "수익율": "-"
         })
 
-# 계산 완료
 avg_profit_rate = (total_profit / total_investment * 100) if total_investment > 0 else 0
 
-# ==================== 메인 지표 ====================
+# 메인 지표
 st.markdown("### 📊 포트폴리오 통합 현황")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -140,12 +136,11 @@ with col3:
 with col4:
     st.metric("수익율", f"{avg_profit_rate:+.2f}%", "실시간")
 
-# ==================== 업데이트 정보 ====================
 st.markdown("---")
 
-KST = pytz.timezone('Asia/Seoul')
+KST = pytz.timezone('A
+sia/Seoul')
 now_kst = datetime.now(KST)
-
 col_update1, col_update2 = st.columns(2)
 with col_update1:
     st.info(f"⏰ **마지막 업데이트**: {now_kst.strftime('%Y-%m-%d %H:%M:%S')} KST")
@@ -159,14 +154,11 @@ with col_update2:
         market = "🌙 장 폐장"
     st.info(f"🔄 **현재 시장**: {market}")
 
-# ==================== 종목별 상세 ====================
 st.markdown("---")
 st.markdown("### 📈 종목별 실시간 현황")
 
 if holdings_results:
     df = pd.DataFrame(holdings_results)
-    
-    # 수익율로 정렬 (내림차순)
     try:
         df_sorted = df.sort_values("수익율", key=lambda x: x.str.rstrip('%').astype(float), ascending=False)
     except:
@@ -176,7 +168,6 @@ if holdings_results:
 else:
     st.warning("보유 종목이 없습니다.")
 
-# ==================== 계좌별 요약 ====================
 st.markdown("---")
 st.markdown("### 🏦 계좌별 요약")
 
@@ -184,7 +175,6 @@ for account_key, account in portfolio_data["accounts"].items():
     account_investment = 0
     account_current = 0
     
-    # 현금 포함
     cash = account.get("cash", {})
     if isinstance(cash, dict):
         account_current += cash.get("KRW", 0)
@@ -195,7 +185,6 @@ for account_key, account in portfolio_data["accounts"].items():
         account_investment += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
     
     for ticker, info in account["holdings"].items():
-        # 수동 입력된 가격이 있으면 우선 사용
         if "current_price" in info and info["current_price"]:
             current_price = info["current_price"]
         else:
@@ -226,7 +215,6 @@ for account_key, account in portfolio_data["accounts"].items():
         f"₩{account_profit:+,.0f} ({account_rate:+.2f}%)"
     )
 
-# ==================== 푸터 ====================
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #888; margin-top: 40px;">

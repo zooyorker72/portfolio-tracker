@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "total_accounts": 3,
-    "last_update": "2026-03-05 20:34",
+    "total_accounts": 4,
+    "last_update": "2026-03-05 20:49",
     "exchange_rates": {
       "USD_KRW": 1472,
       "CAD_KRW": 1079,
@@ -59,6 +59,20 @@
         "PEN.AX": {"currency": "AUD", "avg_price": 0.66, "quantity": 678},
         "LOT.AX": {"currency": "AUD", "avg_price": 1.9558, "quantity": 1256},
         "HCH.AX": {"currency": "AUD", "avg_price": 1.8150, "quantity": 700}
+      }
+    },
+    "domestic_irp": {
+      "name": "국내 IRP",
+      "cash": {
+        "KRW": 86709
+      },
+      "holdings": {
+        "원자력": {"currency": "KRW", "avg_price": 5968380, "quantity": 1, "current_price": 5968380},
+        "TDF": {"currency": "KRW", "avg_price": 5338275, "quantity": 1, "current_price": 5338275},
+        "금현물": {"currency": "KRW", "avg_price": 4794790, "quantity": 1, "current_price": 4794790},
+        "조선": {"currency": "KRW", "avg_price": 3910170, "quantity": 1, "current_price": 3910170},
+        "AI": {"currency": "KRW", "avg_price": 1652710, "quantity": 1, "current_price": 1652710},
+        "화장품": {"currency": "KRW", "avg_price": 1352370, "quantity": 1, "current_price": 1352370}
       }
     }
   }
