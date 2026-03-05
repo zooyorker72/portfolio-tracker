@@ -32,23 +32,39 @@ except Exception as e:
 # 환율 정보
 exchange_rates = portfolio_data["metadata"]["exchange_rates"]
 
-# 실시간 주가 조회 (캐싱)
-@st.cache_data(ttl=600)
+# 실시간 주가 조회 (캐싱 없음 - 실시간 필요)
 def get_current_price(ticker):
     try:
         data = yf.Ticker(ticker)
-        return data.info.get('currentPrice')
-    except:
+        price = data.info.get('currentPrice')
+        if price:
+            return price
+        else:
+            # 대체: history에서 최근가 가져오기
+            hist = data.history(period='1d')
+            if not hist.empty:
+                return hist['Close'].iloc[-1]
+        return None
+    except Exception as e:
+        st.warning(f"{ticker} 조회 실패: {str(e)}")
         return None
 
 # 모든 계좌의 보유종목 수집
 all_holdings = {}
+total_cash = 0  # 전체 현금
+
 for account_key, account in portfolio_data["accounts"].items():
     all_holdings.update(account["holdings"])
+    # 현금 합산
+    cash = account.get("cash", {})
+    if isinstance(cash, dict):
+        total_cash += cash.get("KRW", 0)
+        total_cash += cash.get("CAD", 0) * exchange_rates["CAD_KRW"]
+        total_cash += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
 
 # 실시간 계산
-total_investment = 0  # 투자원금
-total_current_value = 0  # 현재가치
+total_investment = total_cash  # 현금도 투자원금에 포함
+total_current_value = total_cash  # 현재가치도 현금부터 시작
 total_profit = 0  # 평가손익
 
 holdings_results = []
@@ -163,6 +179,16 @@ st.markdown("### 🏦 계좌별 요약")
 for account_key, account in portfolio_data["accounts"].items():
     account_investment = 0
     account_current = 0
+    
+    # 현금 포함
+    cash = account.get("cash", {})
+    if isinstance(cash, dict):
+        account_current += cash.get("KRW", 0)
+        account_current += cash.get("CAD", 0) * exchange_rates["CAD_KRW"]
+        account_current += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
+        account_investment += cash.get("KRW", 0)
+        account_investment += cash.get("CAD", 0) * exchange_rates["CAD_KRW"]
+        account_investment += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
     
     for ticker, info in account["holdings"].items():
         current_price = get_current_price(ticker)
