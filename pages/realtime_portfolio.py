@@ -46,8 +46,19 @@ def get_current_price(ticker):
 all_holdings = {}
 total_cash = 0
 
+# 계좌별 약자
+account_short_names = {
+    "korean_investment": "한투",
+    "mirae_asset": "미래",
+    "namu_securities": "나무",
+    "domestic_irp": "IRP"
+}
+
 for account_key, account in portfolio_data["accounts"].items():
-    all_holdings.update(account["holdings"])
+    short_name = account_short_names.get(account_key, "")
+    for ticker, info in account["holdings"].items():
+        key = f"{ticker} ({short_name})"  # 중복 방지
+        all_holdings[key] = info
     cash = account.get("cash", {})
     if isinstance(cash, dict):
         total_cash += cash.get("KRW", 0)
@@ -109,17 +120,28 @@ for ticker, info in all_holdings.items():
             "수익율": "-"
         })
 
-# 현금 항목 추가
-holdings_results.append({
-    "종목": "💵 현금",
-    "통화": "KRW",
-    "평단": "-",
-    "수량": "-",
-    "현재가": "-",
-    "평가금액": f"₩{total_cash:,.0f}",
-    "손익": "-",
-    "수익율": "-"
-})
+# 계좌별 현금 항목 추가
+for account_key, account in portfolio_data["accounts"].items():
+    short_name = account_short_names.get(account_key, "")
+    cash = account.get("cash", {})
+    
+    cash_krw = 0
+    if isinstance(cash, dict):
+        cash_krw = cash.get("KRW", 0)
+        cash_krw += cash.get("CAD", 0) * exchange_rates["CAD_KRW"]
+        cash_krw += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
+    
+    if cash_krw > 0:
+        holdings_results.append({
+            "종목": f"💵 현금 ({short_name})",
+            "통화": "KRW",
+            "평단": "-",
+            "수량": "-",
+            "현재가": "-",
+            "평가금액": f"₩{cash_krw:,.0f}",
+            "손익": "-",
+            "수익율": "-"
+        })
 
 avg_profit_rate = (total_profit / total_investment * 100) if total_investment > 0 else 0
 
