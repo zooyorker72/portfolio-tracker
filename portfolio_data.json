@@ -73,7 +73,8 @@
         "금현물": {"currency": "KRW", "avg_price": 4794790, "quantity": 1, "current_price": 4794790},
         "조선": {"currency": "KRW", "avg_price": 3910170, "quantity": 1, "current_price": 3910170},
         "AI": {"currency": "KRW", "avg_price": 1652710, "quantity": 1, "current_price": 1652710},
-        "화장품": {"currency": "KRW", "avg_price": 1352370, "quantity": 1, "current_price": 1352370}
+        "화장품": {"currency": "KRW", "avg_price": 1352370, "quantity": 1, "current_price": 1352370},
+        "KB국민은행": {"currency": "KRW", "avg_price": 2144274, "quantity": 1, "current_price": 2144274}
       }
     }
   }
