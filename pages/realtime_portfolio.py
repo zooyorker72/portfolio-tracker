@@ -15,14 +15,12 @@ st.set_page_config(
 st.markdown("# 💰 실시간 포트폴리오 현황")
 
 # JSON 데이터 로드
-import os
-
 try:
     data_path = pathlib.Path(__file__).parent.parent / "portfolio_data.json"
     with open(data_path, "r", encoding="utf-8") as f:
         portfolio_data = json.load(f)
 except FileNotFoundError:
-    st.error(f"포트폴리오 데이터를 찾을 수 없습니다: {data_path}")
+    st.error(f"포트폴리오 데이터를 찾을 수 없습니다")
     st.stop()
 except Exception as e:
     st.error(f"데이터 로드 오류: {e}")
@@ -42,7 +40,7 @@ def get_current_price(ticker):
             if not hist.empty:
                 return hist['Close'].iloc[-1]
         return None
-    except Exception as e:
+    except:
         return None
 
 all_holdings = {}
@@ -61,12 +59,6 @@ total_current_value = total_cash
 total_profit = 0
 
 holdings_results = []
-
-# 현금 항목 추가
-st.subheader("💵 현금 현황")
-col_cash1, col_cash2, col_cash3 = st.columns(3)
-with col_cash1:
-    st.metric("전체 현금", f"₩{total_cash:,.0f}")
 
 # 종목별 손익 계산
 for ticker, info in all_holdings.items():
@@ -100,7 +92,7 @@ for ticker, info in all_holdings.items():
             "통화": info["currency"],
             "평단": f"{info['avg_price']:.4f}",
             "수량": f"{info['quantity']:,.0f}",
-            "현재가": f"{current_price:.4f}" if current_price else "조회중",
+            "현재가": f"{current_price:.4f}",
             "평가금액": f"₩{current_value:,.0f}",
             "손익": f"₩{profit:,.0f}",
             "수익율": f"{profit_pct:+.2f}%"
@@ -111,7 +103,7 @@ for ticker, info in all_holdings.items():
             "통화": info["currency"],
             "평단": f"{info['avg_price']:.4f}",
             "수량": f"{info['quantity']:,.0f}",
-            "현재가": "조회중...",
+            "현재가": "조회중",
             "평가금액": "조회중",
             "손익": "-",
             "수익율": "-"
@@ -138,9 +130,9 @@ with col4:
 
 st.markdown("---")
 
-KST = pytz.timezone('A
-sia/Seoul')
+KST = pytz.timezone('Asia/Seoul')
 now_kst = datetime.now(KST)
+
 col_update1, col_update2 = st.columns(2)
 with col_update1:
     st.info(f"⏰ **마지막 업데이트**: {now_kst.strftime('%Y-%m-%d %H:%M:%S')} KST")
@@ -216,10 +208,10 @@ for account_key, account in portfolio_data["accounts"].items():
     )
 
 st.markdown("---")
-st.markdown("""
+st.markdown(f"""
 <div style="text-align: center; color: #888; margin-top: 40px;">
     <strong>💰 실시간 포트폴리오 시스템</strong><br>
     yfinance 실시간 주가 + 자동 손익 계산<br>
-    <small>환율: USD={:,.0f}, CAD={:,.0f}, AUD={:,.0f}</small>
+    <small>환율: USD={exchange_rates["USD_KRW"]:,.0f}, CAD={exchange_rates["CAD_KRW"]:,.0f}, AUD={exchange_rates["AUD_KRW"]:,.0f}</small>
 </div>
-""".format(exchange_rates["USD_KRW"], exchange_rates["CAD_KRW"], exchange_rates["AUD_KRW"]), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
