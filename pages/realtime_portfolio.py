@@ -14,11 +14,19 @@ st.set_page_config(
 st.markdown("# 💰 실시간 포트폴리오 현황")
 
 # JSON 데이터 로드
+import os
+import pathlib
+
 try:
-    with open("/Users/sungjinjun/.openclaw/workspace/portfolio_data.json", "r") as f:
+    # 상대 경로로 변경
+    data_path = pathlib.Path(__file__).parent.parent / "portfolio_data.json"
+    with open(data_path, "r", encoding="utf-8") as f:
         portfolio_data = json.load(f)
-except:
-    st.error("포트폴리오 데이터를 불러올 수 없습니다.")
+except FileNotFoundError:
+    st.error(f"포트폴리오 데이터를 찾을 수 없습니다: {data_path}")
+    st.stop()
+except Exception as e:
+    st.error(f"데이터 로드 오류: {e}")
     st.stop()
 
 # 환율 정보
