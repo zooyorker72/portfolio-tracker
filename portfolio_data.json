@@ -18,16 +18,16 @@
         "NXE": {"currency": "USD", "avg_price": 2.8535, "quantity": 1000},
         "SILJ": {"currency": "USD", "avg_price": 11.5150, "quantity": 50},
         "OKLO": {"currency": "USD", "avg_price": 22.4115, "quantity": 13},
-        "M": {"currency": "CAD", "avg_price": 0.3, "quantity": 5000},
-        "SASK": {"currency": "CAD", "avg_price": 0.454, "quantity": 6500},
-        "GLO": {"currency": "CAD", "avg_price": 0.4650, "quantity": 6000},
+        "M.V": {"currency": "CAD", "avg_price": 0.3, "quantity": 5000},
+        "SASK.V": {"currency": "CAD", "avg_price": 0.454, "quantity": 6500},
+        "GLO.TO": {"currency": "CAD", "avg_price": 0.4650, "quantity": 6000},
         "LTBR": {"currency": "USD", "avg_price": 6.7376, "quantity": 142},
-        "SLVR": {"currency": "CAD", "avg_price": 0.5994, "quantity": 7200},
-        "CVV": {"currency": "CAD", "avg_price": 0.7, "quantity": 4500},
+        "SLVR.V": {"currency": "CAD", "avg_price": 0.5994, "quantity": 7200},
+        "CVV.V": {"currency": "CAD", "avg_price": 0.7, "quantity": 4500},
         "ASPI": {"currency": "USD", "avg_price": 5.01, "quantity": 30},
         "NNE": {"currency": "USD", "avg_price": 26.5, "quantity": 10},
-        "FUU": {"currency": "CAD", "avg_price": 0.2, "quantity": 15000},
-        "DEF": {"currency": "CAD", "avg_price": 0.3, "quantity": 5000},
+        "FUU.V": {"currency": "CAD", "avg_price": 0.2, "quantity": 15000},
+        "DEF.V": {"currency": "CAD", "avg_price": 0.3, "quantity": 5000},
         "EU": {"currency": "USD", "avg_price": 2.4144, "quantity": 26}
       }
     },
@@ -36,18 +36,18 @@
       "holdings": {
         "MUX": {"currency": "USD", "avg_price": 24.70, "quantity": 44},
         "VZLA": {"currency": "USD", "avg_price": 3.8391, "quantity": 901},
-        "IVN": {"currency": "CAD", "avg_price": 17.86, "quantity": 100}
+        "IVN.TO": {"currency": "CAD", "avg_price": 17.86, "quantity": 100}
       }
     },
     "namu_securities": {
       "name": "나무증권",
       "holdings": {
-        "DYL": {"currency": "AUD", "avg_price": 0.9850, "quantity": 2150},
-        "BMN": {"currency": "AUD", "avg_price": 2.24, "quantity": 900},
-        "PDN": {"currency": "AUD", "avg_price": 6.8, "quantity": 320},
-        "PEN": {"currency": "AUD", "avg_price": 0.66, "quantity": 678},
-        "LOT": {"currency": "AUD", "avg_price": 1.9558, "quantity": 1256},
-        "HCH": {"currency": "AUD", "avg_price": 1.8150, "quantity": 700}
+        "DYL.AX": {"currency": "AUD", "avg_price": 0.9850, "quantity": 2150},
+        "BMN.AX": {"currency": "AUD", "avg_price": 2.24, "quantity": 900},
+        "PDN.AX": {"currency": "AUD", "avg_price": 6.8, "quantity": 320},
+        "PEN.AX": {"currency": "AUD", "avg_price": 0.66, "quantity": 678},
+        "LOT.AX": {"currency": "AUD", "avg_price": 1.9558, "quantity": 1256},
+        "HCH.AX": {"currency": "AUD", "avg_price": 1.8150, "quantity": 700}
       }
     }
   }
