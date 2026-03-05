@@ -14,6 +14,12 @@ st.set_page_config(
 
 st.markdown("# 💰 실시간 포트폴리오 현황")
 
+# 새로고침 버튼
+col_refresh1, col_refresh2, col_refresh3 = st.columns([1, 1, 3])
+with col_refresh1:
+    if st.button("🔄 실시간 갱신", use_container_width=True):
+        st.rerun()
+
 # JSON 데이터 로드
 try:
     data_path = pathlib.Path(__file__).parent.parent / "portfolio_data.json"
@@ -28,8 +34,8 @@ except Exception as e:
 
 exchange_rates = portfolio_data["metadata"]["exchange_rates"]
 
-@st.cache_data(ttl=600)
 def get_current_price(ticker):
+    """yfinance에서 실시간 주가 조회 (캐시 없음)"""
     try:
         data = yf.Ticker(ticker)
         price = data.info.get('currentPrice')
