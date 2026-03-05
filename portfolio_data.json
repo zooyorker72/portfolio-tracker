@@ -11,10 +11,14 @@
   "accounts": {
     "korean_investment": {
       "name": "한국투자증권",
+      "cash": {
+        "KRW": 2169120,
+        "CAD": 3669.64
+      },
       "holdings": {
         "LEU": {"currency": "USD", "avg_price": 20.1809, "quantity": 35},
         "UEC": {"currency": "USD", "avg_price": 1.9398, "quantity": 800},
-        "DNN": {"currency": "USD", "avg_price": 0.9918, "quantity": 1000},
+        "DNN": {"currency": "USD", "avg_price": 0.9918, "quantity": 3000},
         "NXE": {"currency": "USD", "avg_price": 2.8535, "quantity": 1000},
         "SILJ": {"currency": "USD", "avg_price": 11.5150, "quantity": 50},
         "OKLO": {"currency": "USD", "avg_price": 22.4115, "quantity": 13},
@@ -33,6 +37,10 @@
     },
     "mirae_asset": {
       "name": "미래에셋증권",
+      "cash": {
+        "KRW": 3028944,
+        "CAD": 1011.34
+      },
       "holdings": {
         "MUX": {"currency": "USD", "avg_price": 24.70, "quantity": 44},
         "VZLA": {"currency": "USD", "avg_price": 3.8391, "quantity": 901},
@@ -41,6 +49,9 @@
     },
     "namu_securities": {
       "name": "나무증권",
+      "cash": {
+        "AUD": 2538.48
+      },
       "holdings": {
         "DYL.AX": {"currency": "AUD", "avg_price": 0.9850, "quantity": 2150},
         "BMN.AX": {"currency": "AUD", "avg_price": 2.24, "quantity": 900},
