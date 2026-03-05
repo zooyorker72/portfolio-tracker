@@ -70,7 +70,11 @@ total_profit = 0  # 평가손익
 holdings_results = []
 
 for ticker, info in all_holdings.items():
-    current_price = get_current_price(ticker)
+    # 수동 입력된 가격이 있으면 우선 사용
+    if "current_price" in info and info["current_price"]:
+        current_price = info["current_price"]
+    else:
+        current_price = get_current_price(ticker)
     
     # 환율 적용
     if info["currency"] == "USD":
@@ -191,7 +195,11 @@ for account_key, account in portfolio_data["accounts"].items():
         account_investment += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
     
     for ticker, info in account["holdings"].items():
-        current_price = get_current_price(ticker)
+        # 수동 입력된 가격이 있으면 우선 사용
+        if "current_price" in info and info["current_price"]:
+            current_price = info["current_price"]
+        else:
+            current_price = get_current_price(ticker)
         
         if info["currency"] == "USD":
             exchange = exchange_rates["USD_KRW"]

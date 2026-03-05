@@ -22,7 +22,7 @@
         "NXE": {"currency": "USD", "avg_price": 2.8535, "quantity": 1000},
         "SILJ": {"currency": "USD", "avg_price": 11.5150, "quantity": 50},
         "OKLO": {"currency": "USD", "avg_price": 22.4115, "quantity": 13},
-        "M.V": {"currency": "CAD", "avg_price": 0.3, "quantity": 5000},
+        "M.V": {"currency": "CAD", "avg_price": 0.3, "quantity": 5000, "current_price": 0.61},
         "SASK.V": {"currency": "CAD", "avg_price": 0.454, "quantity": 6500},
         "GLO.TO": {"currency": "CAD", "avg_price": 0.4650, "quantity": 6000},
         "LTBR": {"currency": "USD", "avg_price": 6.7376, "quantity": 142},
