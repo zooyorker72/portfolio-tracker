@@ -109,6 +109,18 @@ for ticker, info in all_holdings.items():
             "수익율": "-"
         })
 
+# 현금 항목 추가
+holdings_results.append({
+    "종목": "💵 현금",
+    "통화": "KRW",
+    "평단": "-",
+    "수량": "-",
+    "현재가": "-",
+    "평가금액": f"₩{total_cash:,.0f}",
+    "손익": "-",
+    "수익율": "-"
+})
+
 avg_profit_rate = (total_profit / total_investment * 100) if total_investment > 0 else 0
 
 # 메인 지표
