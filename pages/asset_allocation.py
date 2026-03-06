@@ -1,9 +1,9 @@
 import streamlit as st
 import json
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
 import pathlib
+import matplotlib.pyplot as plt
+import matplotlib
 
 st.set_page_config(
     page_title="📊 자산 비중",
@@ -106,35 +106,26 @@ st.markdown("### 1️⃣ 국외 vs 국내 자산 비율")
 국내 = accounts_breakdown["국내_IRP"]
 총자산 = 국외 + 국내
 
-fig_overview = go.Figure(data=[go.Pie(
-    labels=["🌍 국외 투자", "🇰🇷 국내 IRP"],
-    values=[국외, 국내],
-    marker=dict(colors=['#1f77b4', '#ff7f0e']),
-    textposition='inside',
-    textinfo='label+percent+value',
-    hovertemplate='<b>%{label}</b><br>₩%{value:,.0f}<br>%{percent:.1%}<extra></extra>'
-)])
+# Streamlit 기본 차트
+fig_data = {
+    "자산": ["🌍 국외 투자", "🇰🇷 국내 IRP"],
+    "금액": [국외, 국내]
+}
 
-fig_overview.update_layout(
-    showlegend=True,
-    height=400,
-    font=dict(size=12)
-)
-
-st.plotly_chart(fig_overview, use_container_width=True)
+st.bar_chart(pd.DataFrame(fig_data).set_index("자산"))
 
 col_stats1, col_stats2, col_stats3 = st.columns(3)
 with col_stats1:
     st.metric("🌍 국외 총자산", f"₩{국외:,.0f}", f"{국외/총자산*100:.1f}%")
 with col_stats2:
-    st.metric("🇰🇷 국내 총자산", f"₩{국내:,.0f}", f"{ 국내/총자산*100:.1f}%")
+    st.metric("🇰🇷 국내 총자산", f"₩{국내:,.0f}", f"{국내/총자산*100:.1f}%")
 with col_stats3:
     st.metric("💰 전체 자산", f"₩{총자산:,.0f}")
 
 st.markdown("---")
 
 # ==================== 2. 국외 내부 비중 ====================
-st.markdown("### 2️⃣ 국외 자산 내부 비중")
+st.markdown("### 2️⃣ 국외 자산 내부 비중 (증권사별)")
 
 overseas_data = {
     "한국투자증권": accounts_breakdown["한국투자증권"],
@@ -142,23 +133,10 @@ overseas_data = {
     "나무증권": accounts_breakdown["나무증권"]
 }
 
-fig_overseas = go.Figure(data=[go.Bar(
-    x=list(overseas_data.keys()),
-    y=list(overseas_data.values()),
-    marker=dict(color=['#1f77b4', '#2ca02c', '#d62728']),
-    text=[f"₩{v:,.0f}<br>({v/국외*100:.1f}%)" for v in overseas_data.values()],
-    textposition='outside',
-    hovertemplate='<b>%{x}</b><br>₩%{y:,.0f}<extra></extra>'
-)])
-
-fig_overseas.update_layout(
-    xaxis_title="증권사",
-    yaxis_title="자산가치 (₩)",
-    height=400,
-    showlegend=False
-)
-
-st.plotly_chart(fig_overseas, use_container_width=True)
+st.bar_chart(pd.DataFrame({
+    "증권사": list(overseas_data.keys()),
+    "자산": list(overseas_data.values())
+}).set_index("증권사"))
 
 # 국외 계좌별 상세
 col_overseas1, col_overseas2, col_overseas3 = st.columns(3)
@@ -174,13 +152,86 @@ with col_overseas3:
 
 st.markdown("---")
 
+# ==================== 2-1. 국외 전체 종목 파이차트 ====================
+st.markdown("### 2️⃣-1️⃣ 국외 투자 - 종목별 상세 비중")
+
+# 모든 해외 종목 수집
+overseas_holdings = {}
+account_short_names = {
+    "korean_investment": "한투",
+    "mirae_asset": "미래",
+    "namu_securities": "나무",
+    "domestic_irp": "IRP"
+}
+
+for account_key, account in portfolio_data["accounts"].items():
+    if account_key == "domestic_irp":
+        continue
+    
+    for ticker, info in account["holdings"].items():
+        pure_ticker = ticker.split(" (")[0]
+        
+        if "current_price" in info and info["current_price"]:
+            current_price = info["current_price"]
+        else:
+            current_price = get_current_price(pure_ticker)
+        
+        if info["currency"] == "USD":
+            exchange = exchange_rates["USD_KRW"]
+        elif info["currency"] == "CAD":
+            exchange = exchange_rates["CAD_KRW"]
+        elif info["currency"] == "AUD":
+            exchange = exchange_rates["AUD_KRW"]
+        else:
+            exchange = 1
+        
+        if current_price:
+            current_value = current_price * info["quantity"] * exchange
+            overseas_holdings[ticker] = current_value
+
+# 현금 추가
+for account_key, account in portfolio_data["accounts"].items():
+    if account_key == "domestic_irp":
+        continue
+    
+    short_name = account_short_names.get(account_key, "")
+    cash = account.get("cash", {})
+    
+    if isinstance(cash, dict):
+        cash_krw = cash.get("KRW", 0)
+        cash_krw += cash.get("CAD", 0) * exchange_rates["CAD_KRW"]
+        cash_krw += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
+        
+        if cash_krw > 0:
+            overseas_holdings[f"💵 현금 ({short_name})"] = cash_krw
+
+# 파이차트
+if overseas_holdings:
+    fig_overseas_pie, ax = plt.subplots(figsize=(10, 8))
+    ax.pie(overseas_holdings.values(), labels=overseas_holdings.keys(), autopct='%1.1f%%', startangle=90)
+    ax.set_title("국외 투자 - 종목별 비중", fontsize=14, fontweight='bold', pad=20)
+    st.pyplot(fig_overseas_pie)
+    plt.close()
+
+# 상세 테이블
+overseas_table = pd.DataFrame([
+    {
+        "종목": name,
+        "자산가치": f"₩{value:,.0f}",
+        "비중": f"{value/국외*100:.2f}%"
+    }
+    for name, value in sorted(overseas_holdings.items(), key=lambda x: x[1], reverse=True)
+])
+
+st.dataframe(overseas_table, use_container_width=True, hide_index=True)
+
+st.markdown("---")
+
 # ==================== 3. 국내 IRP 비중 ====================
-st.markdown("### 3️⃣ 국내 IRP 자산 내부 비중")
+st.markdown("### 3️⃣ 국내 IRP 자산 내부 비중 - 종목별 상세")
 
 irp_account = portfolio_data["accounts"]["domestic_irp"]
 irp_breakdown = {}
-
-exchange_rates = portfolio_data["metadata"]["exchange_rates"]
 
 for ticker, info in irp_account["holdings"].items():
     if "current_price" in info and info["current_price"]:
@@ -197,26 +248,15 @@ cash = irp_account.get("cash", {})
 if isinstance(cash, dict):
     cash_krw = cash.get("KRW", 0)
     if cash_krw > 0:
-        irp_breakdown["현금"] = cash_krw
+        irp_breakdown["💵 현금성"] = cash_krw
 
-fig_irp = px.pie(
-    values=list(irp_breakdown.values()),
-    names=list(irp_breakdown.keys()),
-    title="IRP 내부 자산 구성",
-    hole=0,
-    text_info="label+percent"
-)
-
-fig_irp.update_traces(
-    hovertemplate='<b>%{label}</b><br>₩%{value:,.0f}<br>%{percent:.1%}<extra></extra>'
-)
-
-fig_irp.update_layout(
-    height=400,
-    font=dict(size=11)
-)
-
-st.plotly_chart(fig_irp, use_container_width=True)
+# 파이차트
+if irp_breakdown:
+    fig_irp_pie, ax = plt.subplots(figsize=(10, 8))
+    ax.pie(irp_breakdown.values(), labels=irp_breakdown.keys(), autopct='%1.1f%%', startangle=90)
+    ax.set_title("국내 IRP - 종목별 비중", fontsize=14, fontweight='bold', pad=20)
+    st.pyplot(fig_irp_pie)
+    plt.close()
 
 # IRP 항목별 상세
 st.markdown("#### IRP 항목별 상세")
