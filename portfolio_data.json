@@ -184,45 +184,51 @@
       "holdings": {
         "원자력": {
           "currency": "KRW",
-          "avg_price": 5968380,
-          "quantity": 1,
-          "current_price": 5968380
+          "avg_price": 22673,
+          "quantity": 132,
+          "current_price": 44750
         },
         "TDF": {
           "currency": "KRW",
-          "avg_price": 5338275,
-          "quantity": 1,
-          "current_price": 5338275
+          "avg_price": 13711,
+          "quantity": 327,
+          "current_price": 16230
         },
         "금현물": {
           "currency": "KRW",
-          "avg_price": 4794790,
-          "quantity": 1,
-          "current_price": 4794790
+          "avg_price": 21853,
+          "quantity": 143,
+          "current_price": 33830
         },
         "조선": {
           "currency": "KRW",
-          "avg_price": 3910170,
-          "quantity": 1,
-          "current_price": 3910170
+          "avg_price": 19513,
+          "quantity": 102,
+          "current_price": 35355
         },
         "AI": {
           "currency": "KRW",
-          "avg_price": 1652710,
-          "quantity": 1,
-          "current_price": 1652710
+          "avg_price": 13359,
+          "quantity": 82,
+          "current_price": 20040
         },
         "화장품": {
           "currency": "KRW",
-          "avg_price": 1352370,
-          "quantity": 1,
-          "current_price": 1352370
+          "avg_price": 2729,
+          "quantity": 366,
+          "current_price": 3380
         },
         "KB국민은행": {
           "currency": "KRW",
           "avg_price": 2144274,
           "quantity": 1,
           "current_price": 2144274
+        },
+        "현금성": {
+          "currency": "KRW",
+          "avg_price": 86727,
+          "quantity": 1,
+          "current_price": 86727
         }
       }
     }
