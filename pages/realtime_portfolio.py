@@ -78,11 +78,14 @@ total_profit = 0
 holdings_results = []
 
 # 종목별 손익 계산
-for ticker, info in all_holdings.items():
+for display_ticker, info in all_holdings.items():
+    # 순수 티커 추출 (예: "VZLA (한투)" → "VZLA")
+    pure_ticker = display_ticker.split(" (")[0]
+    
     if "current_price" in info and info["current_price"]:
         current_price = info["current_price"]
     else:
-        current_price = get_current_price(ticker)
+        current_price = get_current_price(pure_ticker)
     
     if info["currency"] == "USD":
         exchange = exchange_rates["USD_KRW"]
@@ -105,7 +108,7 @@ for ticker, info in all_holdings.items():
         total_profit += profit
         
         holdings_results.append({
-            "종목": ticker,
+            "종목": display_ticker,
             "통화": info["currency"],
             "평단": f"{info['avg_price']:.4f}",
             "수량": f"{info['quantity']:,.0f}",
@@ -116,7 +119,7 @@ for ticker, info in all_holdings.items():
         })
     else:
         holdings_results.append({
-            "종목": ticker,
+            "종목": display_ticker,
             "통화": info["currency"],
             "평단": f"{info['avg_price']:.4f}",
             "수량": f"{info['quantity']:,.0f}",
@@ -216,11 +219,14 @@ for account_key, account in portfolio_data["accounts"].items():
         account_investment += cash.get("CAD", 0) * exchange_rates["CAD_KRW"]
         account_investment += cash.get("AUD", 0) * exchange_rates["AUD_KRW"]
     
-    for ticker, info in account["holdings"].items():
+    for display_ticker, info in account["holdings"].items():
+        # 순수 티커 추출
+        pure_ticker = display_ticker.split(" (")[0]
+        
         if "current_price" in info and info["current_price"]:
             current_price = info["current_price"]
         else:
-            current_price = get_current_price(ticker)
+            current_price = get_current_price(pure_ticker)
         
         if info["currency"] == "USD":
             exchange = exchange_rates["USD_KRW"]
