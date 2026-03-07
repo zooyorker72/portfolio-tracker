@@ -1,0 +1,42 @@
+name: 📊 일일 포트폴리오 수익율 업데이트
+
+on:
+  schedule:
+    # 한국장 마감: 매일 15:30 KST = 06:30 UTC
+    - cron: '30 6 * * 1-5'  # 월-금, 06:30 UTC
+    # 미국장 마감: 매일 05:00 KST (다음날) = 20:00 UTC (전날)
+    - cron: '0 20 * * 0-4'   # 일-목, 20:00 UTC
+  
+  # 수동 실행 가능
+  workflow_dispatch:
+
+jobs:
+  update_portfolio:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 코드 체크아웃
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 🐍 Python 설정
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: 📦 의존성 설치
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: 📊 포트폴리오 업데이트
+        run: python update_daily_returns.py
+      
+      - name: 💾 변경사항 커밋 & 푸시
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Portfolio Tracker Bot"
+          git add portfolio_data.json
+          git commit -m "🔄 일일 수익율 업데이트 ($(date '+%Y-%m-%d %H:%M:%S'))" || echo "No changes to commit"
+          git push
