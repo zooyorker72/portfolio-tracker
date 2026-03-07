@@ -38,7 +38,7 @@ def get_current_price(ticker):
 
 
 def calculate_portfolio_value(portfolio_data):
-    """현재 포트폴리오 평가액 계산"""
+    """현재 포트폴리오 평가액 계산 (JSON의 current_price 기반)"""
     exchange_rates = portfolio_data["metadata"]["exchange_rates"]
     
     total_investment = 0  # 투자 원금
@@ -58,11 +58,12 @@ def calculate_portfolio_value(portfolio_data):
         for ticker, info in account["holdings"].items():
             pure_ticker = ticker.split(" (")[0]
             
-            # 현재가 조회
+            # ✅ JSON의 current_price를 우선 사용 (저장된 가장 최신 가격)
             if "current_price" in info and info["current_price"]:
                 current_price = info["current_price"]
             else:
-                current_price = get_current_price(pure_ticker)
+                # 없으면 평단가를 임시로 사용 (실시간 주가 없을 때)
+                current_price = info.get("avg_price", None)
             
             # 환율 적용
             if info["currency"] == "USD":
@@ -86,8 +87,8 @@ def calculate_portfolio_value(portfolio_data):
     return {
         "total_investment": total_investment,
         "total_current_value": total_current_value,
-        "daily_profit": total_current_value - total_investment,
-        "daily_return_pct": ((total_current_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
+        "cumulative_profit": total_current_value - total_investment,
+        "cumulative_return_pct": ((total_current_value - total_investment) / total_investment * 100) if total_investment > 0 else 0
     }
 
 
@@ -124,24 +125,44 @@ def update_daily_returns():
     print("📊 포트폴리오 평가 중...")
     portfolio_value = calculate_portfolio_value(portfolio_data)
     
-    # 3. 일일 수익율 레코드 생성
+    # 3. daily_history 섹션이 없으면 생성
+    if "daily_history" not in portfolio_data:
+        portfolio_data["daily_history"] = []
+    
+    # 4. 어제 종가 조회 (일일 변화율 계산용)
     now = datetime.now(KST)
+    today = now.strftime("%Y-%m-%d")
+    yesterday_close = None
+    
+    # 최신 기록이 어제인지 확인
+    if portfolio_data["daily_history"]:
+        last_record = portfolio_data["daily_history"][-1]
+        if last_record["date"] != today:  # 어제 데이터가 있으면
+            yesterday_close = last_record["total_current_value"]
+    
+    # 5. 일일 수익율/손익 계산
+    if yesterday_close is not None:
+        daily_profit = portfolio_value["total_current_value"] - yesterday_close
+        daily_return_pct = (daily_profit / yesterday_close * 100) if yesterday_close > 0 else 0
+    else:
+        # 첫 기록이거나 첫 날인 경우 0으로 설정
+        daily_profit = 0
+        daily_return_pct = 0
+    
+    # 6. 일일 수익율 레코드 생성
     daily_record = {
-        "date": now.strftime("%Y-%m-%d"),
+        "date": today,
         "time": now.strftime("%H:%M:%S"),
         "market": determine_market(),
         "total_investment": portfolio_value["total_investment"],
         "total_current_value": portfolio_value["total_current_value"],
-        "daily_profit": portfolio_value["daily_profit"],
-        "daily_return_pct": round(portfolio_value["daily_return_pct"], 2)
+        "cumulative_profit": portfolio_value["cumulative_profit"],
+        "cumulative_return_pct": round(portfolio_value["cumulative_return_pct"], 2),
+        "daily_profit": daily_profit,
+        "daily_return_pct": round(daily_return_pct, 2)
     }
     
-    # 4. daily_history 섹션이 없으면 생성
-    if "daily_history" not in portfolio_data:
-        portfolio_data["daily_history"] = []
-    
-    # 5. 오늘 데이터가 이미 있으면 업데이트, 없으면 추가
-    today = now.strftime("%Y-%m-%d")
+    # 7. 오늘 데이터가 이미 있으면 업데이트, 없으면 추가
     today_record_exists = False
     
     for i, record in enumerate(portfolio_data["daily_history"]):
@@ -155,16 +176,16 @@ def update_daily_returns():
         portfolio_data["daily_history"].append(daily_record)
         print(f"✅ {today} 데이터 추가됨")
     
-    # 6. metadata 업데이트
+    # 8. metadata 업데이트
     portfolio_data["metadata"]["last_update"] = now.strftime("%Y-%m-%d %H:%M:%S")
     
-    # 7. 파일에 저장
+    # 9. 파일에 저장
     try:
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump(portfolio_data, f, indent=2, ensure_ascii=False)
         print(f"💾 데이터 저장 완료")
         
-        # 8. 결과 출력
+        # 10. 결과 출력
         print("\n" + "="*50)
         print(f"📈 일일 수익율 업데이트 완료")
         print("="*50)
@@ -173,8 +194,9 @@ def update_daily_returns():
         print(f"🏢 장: {daily_record['market']}")
         print(f"💰 투자원금: ₩{daily_record['total_investment']:,.0f}")
         print(f"📊 현재가치: ₩{daily_record['total_current_value']:,.0f}")
-        print(f"💹 일일손익: ₩{daily_record['daily_profit']:,.0f}")
-        print(f"📈 수익율: {daily_record['daily_return_pct']:+.2f}%")
+        print(f"📈 누적손익: ₩{daily_record['cumulative_profit']:,.0f} ({daily_record['cumulative_return_pct']:+.2f}%)")
+        print(f"📊 일일손익: ₩{daily_record['daily_profit']:,.0f}")
+        print(f"📈 일일수익율: {daily_record['daily_return_pct']:+.2f}%")
         print("="*50)
         
         return True

@@ -42,20 +42,19 @@ col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     latest = df_history.iloc[0]
-    st.metric("최신 수익율", f"{latest['daily_return_pct']:+.2f}%", 
+    st.metric("오늘 일일수익율", f"{latest['daily_return_pct']:+.2f}%", 
               f"₩{latest['daily_profit']:,.0f}")
 
 with col2:
-    avg_return = df_history["daily_return_pct"].mean()
-    st.metric("평균 수익율", f"{avg_return:+.2f}%", "누적 평균")
+    st.metric("누적 수익율", f"{latest['cumulative_return_pct']:+.2f}%", "전체 기간")
 
 with col3:
-    max_return = df_history["daily_return_pct"].max()
-    st.metric("최고 수익율", f"{max_return:+.2f}%", "최고 기록")
+    avg_return = df_history["daily_return_pct"].mean()
+    st.metric("평균 일일수익율", f"{avg_return:+.2f}%", "평가 기간 평균")
 
 with col4:
-    min_return = df_history["daily_return_pct"].min()
-    st.metric("최저 수익율", f"{min_return:+.2f}%", "최저 기록")
+    max_return = df_history["daily_return_pct"].max()
+    st.metric("최고 일일수익율", f"{max_return:+.2f}%", "최고 기록")
 
 st.markdown("---")
 
@@ -114,12 +113,13 @@ df_display = df_history.copy()
 df_display["날짜"] = df_display["date"].dt.strftime("%Y-%m-%d")
 df_display["시간"] = df_display["time"]
 df_display["장"] = df_display["market"]
-df_display["투자원금"] = df_display["total_investment"].apply(lambda x: f"₩{x:,.0f}")
 df_display["현재가치"] = df_display["total_current_value"].apply(lambda x: f"₩{x:,.0f}")
-df_display["손익"] = df_display["daily_profit"].apply(lambda x: f"₩{x:,.0f}")
-df_display["수익율"] = df_display["daily_return_pct"].apply(lambda x: f"{x:+.2f}%")
+df_display["일일손익"] = df_display["daily_profit"].apply(lambda x: f"₩{x:,.0f}")
+df_display["일일수익율"] = df_display["daily_return_pct"].apply(lambda x: f"{x:+.2f}%")
+df_display["누적손익"] = df_display["cumulative_profit"].apply(lambda x: f"₩{x:,.0f}")
+df_display["누적수익율"] = df_display["cumulative_return_pct"].apply(lambda x: f"{x:+.2f}%")
 
-display_cols = ["날짜", "시간", "장", "투자원금", "현재가치", "손익", "수익율"]
+display_cols = ["날짜", "시간", "장", "현재가치", "일일손익", "일일수익율", "누적손익", "누적수익율"]
 df_display_final = df_display[display_cols].reset_index(drop=True)
 df_display_final.index = df_display_final.index + 1
 df_display_final.index.name = "No"
@@ -137,15 +137,16 @@ with col_stats1:
 
 with col_stats2:
     positive_days = (df_history["daily_return_pct"] > 0).sum()
-    st.metric("수익 날짜", f"{positive_days}일", f"{positive_days/len(df_history)*100:.1f}%")
+    pct = (positive_days/len(df_history)*100) if len(df_history) > 0 else 0
+    st.metric("수익 날짜", f"{positive_days}일", f"{pct:.1f}%")
 
 with col_stats3:
-    total_gain = df_history["daily_profit"].sum()
-    st.metric("누적 손익", f"₩{total_gain:,.0f}", "전 기간")
+    total_daily_gain = df_history["daily_profit"].sum()
+    st.metric("일일손익 누합", f"₩{total_daily_gain:,.0f}", "일일 기준")
 
 with col_stats4:
     volatility = df_history["daily_return_pct"].std()
-    st.metric("수익율 변동성", f"{volatility:.2f}%", "표준편차")
+    st.metric("일일 변동성", f"{volatility:.2f}%", "표준편차")
 
 st.markdown("---")
 st.markdown("""

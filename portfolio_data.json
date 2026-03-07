@@ -1,7 +1,7 @@
 {
   "metadata": {
     "total_accounts": 4,
-    "last_update": "2026-03-07 21:56:54",
+    "last_update": "2026-03-07 22:17:16",
     "exchange_rates": {
       "USD_KRW": 1472,
       "CAD_KRW": 1079,
@@ -236,12 +236,14 @@
   "daily_history": [
     {
       "date": "2026-03-07",
-      "time": "21:56:54",
+      "time": "22:17:16",
       "market": "폐장",
       "total_investment": 91940100.28760001,
-      "total_current_value": 164872808.4736914,
-      "daily_profit": 72932708.1860914,
-      "daily_return_pct": 79.33
+      "total_current_value": 101465130.2876,
+      "cumulative_profit": 9525029.999999985,
+      "cumulative_return_pct": 10.36,
+      "daily_profit": 0,
+      "daily_return_pct": 0
     }
   ]
 }
